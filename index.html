@@ -24,7 +24,8 @@
         } catch (e) {}
       })();
     </script>
-    <link rel="stylesheet" href="./style.css" />
+    <base href="/" />
+    <link rel="stylesheet" href="/style.css" />
   </head>
 
   <body>
@@ -33,7 +34,7 @@
 
       <header>
         <div class="header-row">
-          <h1><a href=".">smollog</a></h1>
+          <h1><a href="/" id="brand-link">smollog</a></h1>
           <div class="header-actions">
             <button
               id="theme-toggle"
@@ -65,6 +66,9 @@
 
             <div id="auth-controls" style="display: none; align-items: center; gap: 8px;">
               <span class="auth-badge" id="author-badge"></span>
+              <button id="copy-blog-btn" class="bracket-btn" type="button" title="Copy your public blog URL">
+                [ copy link ]
+              </button>
               <button id="logout-btn" class="bracket-btn btn-danger" type="button">
                 [ logout ]
               </button>
@@ -88,9 +92,9 @@
           <h2>[ Articles ]</h2>
           <ul id="posts-container" class="posts-list"></ul>
           <div id="empty-state" class="empty-state" style="display: none;">
-            <p>// No articles found in this userspace.</p>
-            <p style="font-size: 0.88rem; color: var(--desc-color);">
-              Authenticate with <strong>[ login ]</strong> to publish the first post, or supply <code>?author=&lt;pub&gt;</code> in the URL.
+            <p id="empty-title">// No author selected.</p>
+            <p id="empty-desc" style="font-size: 0.88rem; color: var(--desc-color);">
+              Authenticate with <strong>[ login ]</strong> to manage your journal, or open a published journal using <code>smollog.vercel.app/&lt;author_pub&gt;</code>.
             </p>
           </div>
         </section>
@@ -203,6 +207,6 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <!-- App Script -->
-    <script type="module" src="./app.js?v=3"></script>
+    <script type="module" src="/app.js?v=4"></script>
   </body>
 </html>

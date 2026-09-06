@@ -4,25 +4,27 @@ import { renderMarkdown } from './markdown.js';
 // Configuration
 const RELAY_URL = 'https://delay.scobrudot.dev/zen';
 const DEFAULT_SALT_PREFIX = 'scobru:zen:blog:';
-const DEFAULT_AUTHOR_PUB = '0E2ktahyK9Ngm8bocvimGuKnOVIba3lNA7451zGqcfwn1';
 
 // State
 let zen = null;
 let currentPair = null;
 let currentUsername = null;
 let authorPub = null;
+let activeAuthorPub = null;
 let postsMap = new Map();
 let currentViewPostId = null;
 let isPreviewing = false;
 let editingPostId = null;
 
 // DOM Elements
+const brandLink = document.getElementById('brand-link');
 const themeToggleBtn = document.getElementById('theme-toggle');
 const themeText = document.getElementById('theme-text');
 const loginTriggerBtn = document.getElementById('login-trigger');
 const newPostBtn = document.getElementById('new-post-btn');
 const authControls = document.getElementById('auth-controls');
 const authorBadge = document.getElementById('author-badge');
+const copyBlogBtn = document.getElementById('copy-blog-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const relayStatusDot = document.getElementById('relay-dot');
 const relayStatusText = document.getElementById('relay-text');
@@ -32,6 +34,8 @@ const listView = document.getElementById('list-view');
 const singleView = document.getElementById('single-view');
 const postsContainer = document.getElementById('posts-container');
 const emptyState = document.getElementById('empty-state');
+const emptyTitle = document.getElementById('empty-title');
+const emptyDesc = document.getElementById('empty-desc');
 
 // Modals
 const authModal = document.getElementById('auth-modal');
@@ -189,13 +193,28 @@ function updateRelayStatus(online) {
 let activeSubscription = null;
 
 function subscribeToAuthor(pub) {
-  if (!pub) return;
+  if (!pub) {
+    authorPub = null;
+    activeAuthorPub = null;
+    localStorage.removeItem('zen_blog_author_pub');
+    postsMap.clear();
+    renderPostsList();
+    return;
+  }
+
+  if (activeAuthorPub === pub) {
+    return;
+  }
+
   authorPub = pub;
+  activeAuthorPub = pub;
   localStorage.setItem('zen_blog_author_pub', pub);
 
   // Clear existing items
   postsMap.clear();
   renderPostsList();
+
+  if (!zen) return;
 
   // Subscribe to author's posts namespace
   zen.get('~' + pub).get('posts').map().on((post, id) => {
@@ -336,6 +355,47 @@ async function deletePost(id) {
   });
 }
 
+// --- Routing Helpers ---
+
+function getAuthorFromLocation() {
+  // Check pathname: e.g. /0E2ktahyK9Ngm8bocvimGuKnOVIba3lNA7451zGqcfwn1
+  const pathname = window.location.pathname.replace(/^\/+|\/+$/g, '');
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length > 0) {
+    const candidate = segments[0].replace(/^~/, '').trim();
+    if (candidate && !candidate.includes('.') && candidate !== 'index.html' && candidate !== 'api') {
+      return candidate;
+    }
+  }
+
+  // Check URL query parameters
+  const params = new URLSearchParams(window.location.search);
+  const qAuthor = params.get('author');
+  if (qAuthor) return qAuthor.replace(/^~/, '').trim();
+
+  // Check Hash format: #/<pub> or #~<pub>
+  const hash = window.location.hash.replace(/^#\/?/, '').replace(/^~/, '').trim();
+  if (hash && !hash.includes('=') && !hash.includes('&')) {
+    return hash;
+  }
+
+  return null;
+}
+
+function getPostIdFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('post') || null;
+}
+
+function getPostUrl(postId, targetPub = authorPub) {
+  const base = targetPub ? `/${targetPub}` : '';
+  return `${base}?post=${encodeURIComponent(postId)}`;
+}
+
+function getHomeUrl(targetPub = authorPub) {
+  return targetPub ? `/${targetPub}` : '/';
+}
+
 // --- Render Views ---
 
 function renderPostsList() {
@@ -346,11 +406,29 @@ function renderPostsList() {
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
   if (footerStatus) {
-    footerStatus.textContent = `// ${posts.length} post${posts.length === 1 ? '' : 's'} indexed · system: online`;
+    if (!authorPub) {
+      footerStatus.textContent = '// smollog · zen entropy network';
+    } else {
+      footerStatus.textContent = `// ${posts.length} post${posts.length === 1 ? '' : 's'} indexed · system: online`;
+    }
   }
 
   if (posts.length === 0) {
     postsContainer.innerHTML = '';
+    if (!authorPub) {
+      if (emptyTitle) emptyTitle.textContent = '// No author selected.';
+      if (emptyDesc) {
+        emptyDesc.innerHTML = 'Authenticate with <strong>[ login ]</strong> to manage your journal, or open a published journal using <code>smollog.vercel.app/&lt;author_pub&gt;</code>.';
+      }
+    } else {
+      const isOwner = currentPair && authorPub === currentPair.pub;
+      if (emptyTitle) emptyTitle.textContent = `// No articles found in ~${authorPub.slice(0, 10)}...`;
+      if (emptyDesc) {
+        emptyDesc.innerHTML = isOwner
+          ? 'You haven\'t published any posts yet. Click <strong>[ + new post ]</strong> to write your first entry!'
+          : 'This author has not published any articles in this userspace yet.';
+      }
+    }
     emptyState.style.display = 'block';
     return;
   }
@@ -376,6 +454,8 @@ function renderPostsList() {
       </div>
     ` : '';
 
+    const postHref = getPostUrl(post.id, post.authorPub || authorPub);
+
     return `
       <li class="post-item" id="item-${post.id}">
         <div class="post-meta-row">
@@ -383,7 +463,7 @@ function renderPostsList() {
           ${isOwner ? '<span class="status-badge" style="border-color: #16a34a; color: #15803d;">AUTHOR</span>' : ''}
         </div>
         <h3 class="post-title">
-          <a href="?post=${encodeURIComponent(post.id)}" data-nav="${post.id}">${post.title}</a>
+          <a href="${postHref}" data-nav="${post.id}">${post.title}</a>
         </h3>
         <p class="post-excerpt">${excerpt}</p>
         <div class="post-footer-row">
@@ -398,8 +478,8 @@ function renderPostsList() {
   postsContainer.querySelectorAll('a[data-nav]').forEach(el => {
     el.addEventListener('click', (e) => {
       e.preventDefault();
-      const postId = el.getAttribute('data-nav');
-      navigateTo(`?post=${encodeURIComponent(postId)}`);
+      const href = el.getAttribute('href');
+      navigateTo(href);
     });
   });
 
@@ -420,16 +500,18 @@ function renderPostsList() {
 
 function renderSinglePost(postId) {
   const post = postsMap.get(postId);
+  const homeHref = getHomeUrl(post?.authorPub || authorPub);
+
   if (!post || post.deleted) {
     singleView.innerHTML = `
       <div class="empty-state">
         <p>// Post "${postId}" not found or deleted from Zen graph.</p>
-        <a href="." class="bracket-btn" id="back-to-list">[ ← back to posts ]</a>
+        <a href="${homeHref}" class="bracket-btn" id="back-to-list">[ ← back to posts ]</a>
       </div>
     `;
     singleView.querySelector('#back-to-list')?.addEventListener('click', (e) => {
       e.preventDefault();
-      navigateTo('.');
+      navigateTo(homeHref);
     });
     return;
   }
@@ -446,7 +528,7 @@ function renderSinglePost(postId) {
 
   singleView.innerHTML = `
     <div style="margin-bottom: 20px;">
-      <a href="." class="bracket-btn" id="back-link">[ ← all posts ]</a>
+      <a href="${homeHref}" class="bracket-btn" id="back-link">[ ← all posts ]</a>
     </div>
     <article class="single-post-article">
       <header class="single-post-header">
@@ -478,11 +560,12 @@ function renderSinglePost(postId) {
   // Attach single view listeners
   singleView.querySelector('#back-link')?.addEventListener('click', (e) => {
     e.preventDefault();
-    navigateTo('.');
+    navigateTo(homeHref);
   });
 
   singleView.querySelector('#copy-link-btn')?.addEventListener('click', () => {
-    navigator.clipboard.writeText(window.location.href);
+    const postUrl = `${window.location.origin}${getPostUrl(postId, post.authorPub || authorPub)}`;
+    navigator.clipboard.writeText(postUrl);
     showToast('Permalink copied to clipboard.');
   });
 
@@ -499,13 +582,14 @@ function renderSinglePost(postId) {
 // --- Routing & Navigation ---
 
 function handleRoute() {
-  const params = new URLSearchParams(window.location.search);
-  const postId = params.get('post');
-  const authorParam = params.get('author');
+  const urlAuthor = getAuthorFromLocation();
+  const targetAuthor = urlAuthor || (currentPair ? currentPair.pub : null);
 
-  if (authorParam && authorParam !== authorPub) {
-    subscribeToAuthor(authorParam);
+  if (targetAuthor !== activeAuthorPub) {
+    subscribeToAuthor(targetAuthor);
   }
+
+  const postId = getPostIdFromLocation();
 
   if (postId) {
     currentViewPostId = postId;
@@ -563,9 +647,15 @@ async function handleLogin(username, password) {
     // Subscribe to own userspace
     subscribeToAuthor(pair.pub);
 
+    // Update route to /<pub>
+    const postId = getPostIdFromLocation();
+    const newRoute = '/' + pair.pub + (postId ? `?post=${encodeURIComponent(postId)}` : '');
+    window.history.pushState({}, '', newRoute);
+
     updateAuthUI();
     closeAuthModal();
-    showToast(`Authenticated as ${username}.`);
+    handleRoute();
+    showToast(`Logged in! Your blog URL: ${window.location.origin}/${pair.pub}`, 4000);
   } catch (err) {
     console.error('Authentication error:', err);
     authAlert.textContent = `Auth error: ${err.message}`;
@@ -582,7 +672,9 @@ function handleLogout() {
   sessionStorage.removeItem('zen_blog_user');
   sessionStorage.removeItem('zen_blog_pass');
   updateAuthUI();
-  subscribeToAuthor(DEFAULT_AUTHOR_PUB);
+  subscribeToAuthor(null);
+  window.history.pushState({}, '', '/');
+  handleRoute();
   showToast('Logged out.');
 }
 
@@ -650,6 +742,12 @@ function setEditorTab(tab) {
 // --- Initialization & Event Bindings ---
 
 function setupEventListeners() {
+  // Brand navigation
+  brandLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigateTo(getHomeUrl());
+  });
+
   // Theme toggle
   themeToggleBtn?.addEventListener('click', () => {
     const current = getCurrentTheme();
@@ -667,6 +765,18 @@ function setupEventListeners() {
   loginTriggerBtn?.addEventListener('click', openAuthModal);
   authCancelBtn?.addEventListener('click', closeAuthModal);
   logoutBtn?.addEventListener('click', handleLogout);
+
+  // Copy blog link button
+  copyBlogBtn?.addEventListener('click', () => {
+    const targetPub = currentPair ? currentPair.pub : authorPub;
+    if (targetPub) {
+      const url = `${window.location.origin}/${targetPub}`;
+      navigator.clipboard.writeText(url);
+      showToast(`Copied blog URL: ${url}`);
+    } else {
+      showToast('No author URL available.');
+    }
+  });
 
   authForm?.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -738,18 +848,16 @@ function setupEventListeners() {
   setupEventListeners();
   initZen();
 
-  // Check saved session or author pub
+  const urlAuthor = getAuthorFromLocation();
   const savedUser = sessionStorage.getItem('zen_blog_user');
   const savedPass = sessionStorage.getItem('zen_blog_pass');
+
   if (savedUser && savedPass) {
     await handleLogin(savedUser, savedPass);
+  } else if (urlAuthor) {
+    subscribeToAuthor(urlAuthor);
   } else {
-    // If not authenticated, subscribe to URL author param or default author pub
-    const params = new URLSearchParams(window.location.search);
-    const authorParam = params.get('author');
-    const targetAuthor = authorParam || DEFAULT_AUTHOR_PUB;
-
-    subscribeToAuthor(targetAuthor);
+    subscribeToAuthor(null);
   }
 
   handleRoute();
