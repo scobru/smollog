@@ -1,0 +1,20 @@
+{
+  "name": "smollog",
+  "version": "1.0.0",
+  "description": "smollog — Minimal decentralized journal powered by Zen Entropy Network",
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "blog",
+    "journal",
+    "zen",
+    "p2p",
+    "decentralized",
+    "minimal",
+    "markdown"
+  ],
+  "author": "scobru",
+  "license": "MIT"
+}
