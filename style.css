@@ -132,6 +132,9 @@ h1 {
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.5px;
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
 }
 
 h1 a {
@@ -141,6 +144,70 @@ h1 a {
 h1 a:hover {
   background: none;
   color: var(--text-color);
+}
+
+.brand-alias-container {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.brand-sep {
+  color: var(--desc-color);
+  font-weight: 400;
+  margin: 0 1px 0 2px;
+  user-select: none;
+}
+
+.brand-alias-link {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.brand-alias-link:hover {
+  background: none !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.blog-author-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.bracket-btn-xs {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  font-family: monospace;
+  font-size: 0.76rem;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 1px 6px;
+  border-radius: 3px;
+  line-height: 1.2;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.bracket-btn-xs:hover {
+  background-color: var(--link-hover-bg);
+  color: var(--link-hover-color);
+  text-decoration: none;
+}
+
+.pub-short {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--desc-color);
+}
+
+.meta-sep {
+  color: var(--footer-color);
+  margin: 0 2px;
 }
 
 .bio {

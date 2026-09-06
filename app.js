@@ -4,6 +4,10 @@ import { renderMarkdown } from './markdown.js';
 // Configuration
 const RELAY_URL = 'https://delay.scobrudot.dev/zen';
 const DEFAULT_SALT_PREFIX = 'scobru:zen:blog:';
+const KNOWN_ALIASES = {
+  '0E2ktahyK9Ngm8bocvimGuKnOVlba3INA7451zGqcfwn1': 'scobru',
+  'scobru': '0E2ktahyK9Ngm8bocvimGuKnOVlba3INA7451zGqcfwn1'
+};
 
 // State
 let zen = null;
@@ -11,6 +15,7 @@ let currentPair = null;
 let currentUsername = null;
 let authorPub = null;
 let activeAuthorPub = null;
+let currentBlogAlias = null;
 let postsMap = new Map();
 let currentViewPostId = null;
 let isPreviewing = false;
@@ -18,6 +23,13 @@ let editingPostId = null;
 
 // DOM Elements
 const brandLink = document.getElementById('brand-link');
+const brandAliasContainer = document.getElementById('brand-alias-container');
+const brandAliasLink = document.getElementById('brand-alias-link');
+const brandAliasText = document.getElementById('brand-alias-text');
+const blogAuthorTag = document.getElementById('blog-author-tag');
+const blogAuthorName = document.getElementById('blog-author-name');
+const blogAuthorPub = document.getElementById('blog-author-pub');
+const authorCopyBtn = document.getElementById('author-copy-btn');
 const themeToggleBtn = document.getElementById('theme-toggle');
 const themeText = document.getElementById('theme-text');
 const loginTriggerBtn = document.getElementById('login-trigger');
@@ -188,6 +200,136 @@ function updateRelayStatus(online) {
   }
 }
 
+// --- Alias Management & Resolution ---
+
+function updateBlogAlias(alias, pub = activeAuthorPub) {
+  if (!alias || typeof alias !== 'string') return;
+  const cleanAlias = alias.trim();
+  if (!cleanAlias) return;
+
+  currentBlogAlias = cleanAlias;
+
+  if (pub) {
+    try {
+      localStorage.setItem('zen_alias_' + pub, cleanAlias);
+      localStorage.setItem('zen_pub_for_alias_' + cleanAlias.toLowerCase(), pub);
+    } catch (e) {}
+  }
+
+  // Update brand header (shows smollog/alias)
+  if (brandAliasContainer && brandAliasText) {
+    brandAliasText.textContent = cleanAlias;
+    brandAliasContainer.style.display = 'inline-flex';
+  }
+  if (brandAliasLink && pub) {
+    brandAliasLink.setAttribute('href', `/${pub}`);
+  }
+
+  // Update author info tag in relay status bar
+  if (blogAuthorTag) {
+    blogAuthorTag.style.display = 'inline-flex';
+    if (blogAuthorName) blogAuthorName.textContent = '@' + cleanAlias;
+    if (blogAuthorPub && pub) {
+      blogAuthorPub.textContent = `(~${pub.slice(0, 8)}...)`;
+      blogAuthorPub.title = `Pubkey: ${pub}`;
+    }
+  }
+
+  // Update document title
+  document.title = `smollog / ${cleanAlias}`;
+}
+
+function clearBlogAlias() {
+  currentBlogAlias = null;
+  if (brandAliasContainer) {
+    brandAliasContainer.style.display = 'none';
+  }
+  if (brandAliasText) {
+    brandAliasText.textContent = '';
+  }
+  if (blogAuthorTag) {
+    blogAuthorTag.style.display = 'none';
+  }
+  document.title = 'smollog';
+}
+
+function resolvePubFromCandidate(candidate) {
+  if (!candidate) return null;
+  const clean = candidate.replace(/^~/, '').trim();
+  if (clean.length >= 35) {
+    return clean;
+  }
+  const lower = clean.toLowerCase();
+  if (KNOWN_ALIASES[lower]) {
+    return KNOWN_ALIASES[lower];
+  }
+  try {
+    const cached = localStorage.getItem('zen_pub_for_alias_' + lower);
+    if (cached) return cached;
+  } catch (e) {}
+  return clean;
+}
+
+function resolveAuthorAlias(pub) {
+  if (!pub) {
+    clearBlogAlias();
+    return;
+  }
+
+  // 1. Current authenticated author
+  if (currentPair && currentPair.pub === pub && currentUsername) {
+    updateBlogAlias(currentUsername, pub);
+    return;
+  }
+
+  // 2. Known static dictionary
+  if (KNOWN_ALIASES[pub]) {
+    updateBlogAlias(KNOWN_ALIASES[pub], pub);
+    return;
+  }
+
+  // 3. LocalStorage cache
+  try {
+    const cached = localStorage.getItem('zen_alias_' + pub);
+    if (cached) {
+      updateBlogAlias(cached, pub);
+      return;
+    }
+  } catch (e) {}
+
+  // 4. Temporary placeholder while fetching
+  if (brandAliasContainer && brandAliasText) {
+    brandAliasText.textContent = `~${pub.slice(0, 8)}...`;
+    brandAliasContainer.style.display = 'inline-flex';
+  }
+  if (brandAliasLink) {
+    brandAliasLink.setAttribute('href', `/${pub}`);
+  }
+  if (blogAuthorTag) {
+    blogAuthorTag.style.display = 'inline-flex';
+    if (blogAuthorName) blogAuthorName.textContent = `~${pub.slice(0, 8)}...`;
+    if (blogAuthorPub) {
+      blogAuthorPub.textContent = `(${pub.slice(0, 10)}...)`;
+      blogAuthorPub.title = `Pubkey: ${pub}`;
+    }
+  }
+
+  // 5. Query Zen graph for alias
+  if (zen) {
+    zen.get('~' + pub).get('alias').on((val) => {
+      if (val && typeof val === 'string') {
+        updateBlogAlias(val.trim(), pub);
+      }
+    });
+
+    zen.get('smollog_authors').get(pub).get('alias').on((val) => {
+      if (val && typeof val === 'string') {
+        updateBlogAlias(val.trim(), pub);
+      }
+    });
+  }
+}
+
 // --- Subscription to Author Userspace ---
 
 let activeSubscription = null;
@@ -198,6 +340,7 @@ function subscribeToAuthor(pub) {
     activeAuthorPub = null;
     localStorage.removeItem('zen_blog_author_pub');
     postsMap.clear();
+    clearBlogAlias();
     renderPostsList();
     return;
   }
@@ -212,6 +355,7 @@ function subscribeToAuthor(pub) {
 
   // Clear existing items
   postsMap.clear();
+  resolveAuthorAlias(pub);
   renderPostsList();
 
   if (!zen) return;
@@ -228,14 +372,32 @@ function subscribeToAuthor(pub) {
         tags: Array.isArray(post.tags) ? post.tags : (post.tags ? String(post.tags).split(',').map(t => t.trim()) : []),
         createdAt: post.createdAt || post.date || Date.now(),
         updatedAt: post.updatedAt || post.createdAt || Date.now(),
-        authorPub: pub
+        authorPub: pub,
+        authorAlias: post.authorAlias || null
       });
+
+      if (post.authorAlias) {
+        updateBlogAlias(post.authorAlias, pub);
+      }
     }
 
     if (currentViewPostId && currentViewPostId === id) {
       renderSinglePost(currentViewPostId);
     } else {
       renderPostsList();
+    }
+  });
+
+  // Explicitly listen to author's alias
+  zen.get('~' + pub).get('alias').on((alias) => {
+    if (alias && typeof alias === 'string') {
+      updateBlogAlias(alias.trim(), pub);
+    }
+  });
+
+  zen.get('smollog_authors').get(pub).get('alias').on((alias) => {
+    if (alias && typeof alias === 'string') {
+      updateBlogAlias(alias.trim(), pub);
     }
   });
 
@@ -259,6 +421,8 @@ async function createPost(title, content, tags) {
     title: title.trim(),
     content: content.trim(),
     tags: tagList.join(', '),
+    authorAlias: currentUsername || currentBlogAlias || '',
+    authorPub: currentPair.pub,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     deleted: false
@@ -292,6 +456,8 @@ async function updatePost(id, title, content, tags) {
     title: title.trim(),
     content: content.trim(),
     tags: tagList.join(', '),
+    authorAlias: currentUsername || currentBlogAlias || (existing ? existing.authorAlias : ''),
+    authorPub: currentPair.pub,
     createdAt: existing ? existing.createdAt : Date.now(),
     updatedAt: Date.now(),
     deleted: false
