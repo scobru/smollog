@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Pen/book icon -->
+  <path d="M4 28 L22 10 L26 14 L8 30 Z" fill="currentColor"/>
+  <path d="M22 10 L26 14" stroke="currentColor" stroke-width="1.5"/>
+  <!-- Small dot -->
+  <circle cx="26" cy="14" r="1" fill="white"/>
+</svg>

@@ -8,10 +8,7 @@
       content="smollog — Decentralized minimal journal powered by Zen Entropy Network and delay.scobrudot.dev."
     />
     <title>smollog</title>
-    <link
-      rel="icon"
-      href="https://avatars.githubusercontent.com/u/1079164?v=4"
-    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" id="theme-color-meta" />
     <script>
@@ -32,7 +29,9 @@
     <div class="container">
       <header>
         <div class="header-row">
-          <h1><a href="/" id="brand-link">smollog</a></h1>
+          <h1 class="brand-title">
+            <a href="/" id="brand-link">smollog</a><span id="brand-alias-container" class="brand-alias-container" style="display: none;"><span class="brand-sep">/</span><a href="#" id="brand-alias-link" class="brand-alias-link"><span id="brand-alias-text"></span></a></span>
+          </h1>
           <div class="header-actions">
             <button
               id="theme-toggle"
@@ -81,6 +80,12 @@
         <div class="relay-status">
           <span class="status-dot" id="relay-dot"></span>
           <span>relay: delay.scobrudot.dev/zen (<span id="relay-text">connecting</span>)</span>
+          <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
+            <span class="meta-sep">·</span>
+            <span id="blog-author-label">author: <strong id="blog-author-name"></strong></span>
+            <span id="blog-author-pub" class="pub-short"></span>
+            <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copy author blog link">[ copy link ]</button>
+          </span>
         </div>
       </header>
 
