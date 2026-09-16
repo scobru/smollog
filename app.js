@@ -3,6 +3,7 @@ import { renderMarkdown } from './markdown.js';
 
 // Configuration
 const RELAY_URL = 'https://delay.scobrudot.dev/zen';
+const RELAY_URLS = ['https://hmhrmqorxhmzaa7exsbkdmelia.srv.us/zen', 'https://delay.scobrudot.dev/zen'];
 const DEFAULT_SALT_PREFIX = 'scobru:zen:blog:';
 const KNOWN_ALIASES = {
   '0E2ktahyK9Ngm8bocvimGuKnOVlba3INA7451zGqcfwn1': 'scobru',
@@ -113,7 +114,7 @@ function applyTheme(theme, save = false) {
   if (save) {
     try {
       localStorage.setItem('theme', theme);
-    } catch (e) {}
+    } catch (e) { }
   }
   if (themeText) {
     themeText.textContent = theme === 'dark' ? '[ light ]' : '[ dark ]';
@@ -154,8 +155,8 @@ async function derivePair(username, password) {
 function initZen() {
   try {
     zen = new ZEN({
-      peers: [RELAY_URL],
-      localStorage: false,
+      peers: [RELAY_URLS],
+      localStorage: true,
       radisk: true,
       axe: true
     });
@@ -164,7 +165,7 @@ function initZen() {
 
     // Relay status detection
     updateRelayStatus(false);
-    
+
     zen.on('hi', () => {
       updateRelayStatus(true);
     });
@@ -178,7 +179,7 @@ function initZen() {
           p => p && p.wire && (p.wire.readyState === 1 || p.wire.readyState === undefined)
         );
         updateRelayStatus(isConnected);
-      } catch (e) {}
+      } catch (e) { }
     }, 5000);
 
   } catch (err) {
@@ -213,7 +214,7 @@ function updateBlogAlias(alias, pub = activeAuthorPub) {
     try {
       localStorage.setItem('zen_alias_' + pub, cleanAlias);
       localStorage.setItem('zen_pub_for_alias_' + cleanAlias.toLowerCase(), pub);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Update brand header (shows smollog/alias)
@@ -266,7 +267,7 @@ function resolvePubFromCandidate(candidate) {
   try {
     const cached = localStorage.getItem('zen_pub_for_alias_' + lower);
     if (cached) return cached;
-  } catch (e) {}
+  } catch (e) { }
   return clean;
 }
 
@@ -295,7 +296,7 @@ function resolveAuthorAlias(pub) {
       updateBlogAlias(cached, pub);
       return;
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // 4. Temporary placeholder while fetching
   if (brandAliasContainer && brandAliasText) {
@@ -604,7 +605,7 @@ function renderPostsList() {
     const isOwner = currentPair && post.authorPub === currentPair.pub;
     const dateStr = formatDate(post.createdAt);
     const readingTime = getReadingTime(post.content);
-    
+
     // Create excerpt from plain text
     const plain = post.content.replace(/[#*`_~>[\]()]/g, '').slice(0, 160);
     const excerpt = plain.length >= 160 ? plain + '...' : plain;
