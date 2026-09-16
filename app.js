@@ -180,10 +180,10 @@ async function derivePair(username, password) {
 function initZen() {
   try {
     zen = new ZEN({
-      peers: [RELAY_URLS],
+      peers: RELAY_URLS,
       localStorage: true,
-      radisk: true,
-      axe: true
+      radisk: false,
+      axe: false
     });
 
     window.zen = zen;
