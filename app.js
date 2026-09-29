@@ -84,6 +84,31 @@ function showToast(message, duration = 3000) {
   }, duration);
 }
 
+// Split on commas/whitespace, strip leading '#', dedupe (case-insensitive)
+function normalizeTags(input) {
+  const raw = Array.isArray(input) ? input : String(input || '').split(',');
+  const seen = new Set();
+  const out = [];
+  for (const chunk of raw) {
+    for (const part of String(chunk).split(/[\s,]+/)) {
+      const tag = part.replace(/^#+/, '').trim();
+      const key = tag.toLowerCase();
+      if (tag && !seen.has(key)) {
+        seen.add(key);
+        out.push(tag);
+      }
+    }
+  }
+  return out;
+}
+
+function renderTags(tags) {
+  const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return normalizeTags(tags)
+    .map(t => `<span class="tag-chip"><span class="tag-hash">#</span>${esc(t)}</span>`)
+    .join('');
+}
+
 function formatDate(ts) {
   if (!ts) return '';
   const date = new Date(ts);
@@ -610,9 +635,7 @@ function renderPostsList() {
     const plain = post.content.replace(/[#*`_~>[\]()]/g, '').slice(0, 160);
     const excerpt = plain.length >= 160 ? plain + '...' : plain;
 
-    const tagsHtml = (post.tags || [])
-      .map(t => `<span class="status-badge badge-tag">#${t}</span>`)
-      .join(' ');
+    const tagsHtml = renderTags(post.tags);
 
     const ownerControls = isOwner ? `
       <div class="post-actions">
@@ -689,9 +712,7 @@ function renderSinglePost(postId) {
   const readingTime = getReadingTime(post.content);
   const renderedContent = renderMarkdown(post.content);
 
-  const tagsHtml = (post.tags || [])
-    .map(t => `<span class="status-badge badge-tag">#${t}</span>`)
-    .join(' ');
+  const tagsHtml = renderTags(post.tags);
 
   singleView.innerHTML = `
     <div style="margin-bottom: 20px;">
@@ -874,7 +895,7 @@ function openEditModal(postId) {
   editingPostId = postId;
   editorModalTitle.textContent = `[ edit post: ${post.title} ]`;
   postTitleInput.value = post.title || '';
-  postTagsInput.value = (post.tags || []).join(', ');
+  postTagsInput.value = normalizeTags(post.tags).join(', ');
   postContentInput.value = post.content || '';
   setEditorTab('write');
   editorModal.classList.add('is-open');
@@ -963,7 +984,7 @@ function setupEventListeners() {
     e.preventDefault();
     const title = postTitleInput.value.trim();
     const content = postContentInput.value.trim();
-    const tags = postTagsInput.value.split(',').map(t => t.trim()).filter(Boolean);
+    const tags = normalizeTags(postTagsInput.value);
 
     if (!title || !content) {
       alert('Please provide both title and content.');
