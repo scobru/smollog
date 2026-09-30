@@ -597,11 +597,16 @@ function renderPostsList() {
     .filter(p => !p.deleted)
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
+  const catalogCountBadge = document.getElementById("catalog-count-badge");
+  if (catalogCountBadge) {
+    catalogCountBadge.textContent = authorPub ? `// ${posts.length} published` : "// articles feed";
+  }
+
   if (footerStatus) {
     if (!authorPub) {
-      footerStatus.textContent = '// smollog · zen entropy network';
+      footerStatus.textContent = '// smollog • zen entropy network';
     } else {
-      footerStatus.textContent = `// ${posts.length} post${posts.length === 1 ? '' : 's'} indexed · system: online`;
+      footerStatus.textContent = `// ${posts.length} post${posts.length === 1 ? '' : 's'} indexed • system: online`;
     }
   }
 
@@ -639,8 +644,8 @@ function renderPostsList() {
 
     const ownerControls = isOwner ? `
       <div class="post-actions">
-        <button class="bracket-btn edit-btn" data-id="${post.id}">[ edit ]</button>
-        <button class="bracket-btn btn-danger delete-btn" data-id="${post.id}">[ delete ]</button>
+        <button class="bracket-btn nav-pill-btn edit-btn" data-id="${post.id}">[ edit ]</button>
+        <button class="bracket-btn nav-pill-btn btn-danger delete-btn" data-id="${post.id}">[ delete ]</button>
       </div>
     ` : '';
 
@@ -649,8 +654,8 @@ function renderPostsList() {
     return `
       <li class="post-item" id="item-${post.id}">
         <div class="post-meta-row">
-          <span>${dateStr} · ${readingTime}</span>
-          ${isOwner ? '<span class="status-badge" style="border-color: #16a34a; color: #15803d;">AUTHOR</span>' : ''}
+          <span>${dateStr} • ${readingTime}</span>
+          ${isOwner ? '<span class="status-badge" style="border-color: var(--success-color); color: var(--success-color); background: var(--success-bg);">AUTHOR</span>' : ''}
         </div>
         <h3 class="post-title">
           <a href="${postHref}" data-nav="${post.id}">${post.title}</a>
@@ -696,7 +701,7 @@ function renderSinglePost(postId) {
     singleView.innerHTML = `
       <div class="empty-state">
         <p>// Post "${postId}" not found or deleted from Zen graph.</p>
-        <a href="${homeHref}" class="bracket-btn" id="back-to-list">[ ← back to posts ]</a>
+        <a href="${homeHref}" class="bracket-btn" id="back-to-list">← [ back to posts ]</a>
       </div>
     `;
     singleView.querySelector('#back-to-list')?.addEventListener('click', (e) => {
@@ -708,7 +713,7 @@ function renderSinglePost(postId) {
 
   const isOwner = currentPair && post.authorPub === currentPair.pub;
   const dateStr = formatDate(post.createdAt);
-  const updatedStr = post.updatedAt && post.updatedAt !== post.createdAt ? ` · updated ${formatDate(post.updatedAt)}` : '';
+  const updatedStr = post.updatedAt && post.updatedAt !== post.createdAt ? ` • updated ${formatDate(post.updatedAt)}` : '';
   const readingTime = getReadingTime(post.content);
   const renderedContent = renderMarkdown(post.content);
 
@@ -716,25 +721,25 @@ function renderSinglePost(postId) {
 
   singleView.innerHTML = `
     <div style="margin-bottom: 20px;">
-      <a href="${homeHref}" class="bracket-btn" id="back-link">[ ← all posts ]</a>
+      <a href="${homeHref}" class="bracket-btn" id="back-link">← [ all posts ]</a>
     </div>
     <article class="single-post-article">
       <header class="single-post-header">
         <div class="single-post-meta">
           <span>${dateStr}${updatedStr}</span>
-          <span>·</span>
+          <span class="meta-sep">•</span>
           <span>${readingTime}</span>
-          <span>·</span>
+          <span class="meta-sep">•</span>
           <span title="Author Public Key">~${post.authorPub ? post.authorPub.slice(0, 10) + '...' : 'zen'}</span>
         </div>
         <h1 class="single-post-title">${post.title}</h1>
         <div class="post-footer-row">
           <div class="post-tags">${tagsHtml}</div>
           <div class="post-actions">
-            <button class="bracket-btn" id="copy-link-btn">[ copy permalink ]</button>
+            <button class="bracket-btn nav-pill-btn" id="copy-link-btn">[ copy permalink ]</button>
             ${isOwner ? `
-              <button class="bracket-btn" id="single-edit-btn">[ edit ]</button>
-              <button class="bracket-btn btn-danger" id="single-delete-btn">[ delete ]</button>
+              <button class="bracket-btn nav-pill-btn edit-btn" id="single-edit-btn">[ edit ]</button>
+              <button class="bracket-btn nav-pill-btn btn-danger" id="single-delete-btn">[ delete ]</button>
             ` : ''}
           </div>
         </div>

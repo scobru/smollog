@@ -5,12 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="smollog — Decentralized minimal journal powered by Zen Entropy Network and delay.scobrudot.dev."
+      content="smollog — Minimal decentralized journal powered by Zen Entropy Network."
     />
-    <title>smollog</title>
+    <title id="site-title">smollog — Decentralized Journal</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#ffffff" id="theme-color-meta" />
+    <meta name="theme-color" content="#fbfaf4" id="theme-color-meta" />
+
+    <!-- Google Fonts: Inclusive Sans (Display) & JetBrains Mono (Technical / Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital,wght@0,300..700;1,300..700&family=JetBrains+Mono:ital,wght@0,300..700;1,300..700&display=swap"
+      rel="stylesheet"
+    />
+
     <script>
       (function () {
         try {
@@ -18,85 +27,136 @@
           const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           const theme = savedTheme === 'dark' || (!savedTheme && prefersDark) ? 'dark' : 'light';
           document.documentElement.setAttribute('data-theme', theme);
+          const metaTheme = document.getElementById('theme-color-meta');
+          if (metaTheme) {
+            metaTheme.setAttribute('content', theme === 'dark' ? '#121716' : '#fbfaf4');
+          }
         } catch (e) {}
       })();
     </script>
     <base href="/" />
-    <link rel="stylesheet" href="/style.css?v=2" />
+    <link rel="stylesheet" href="/style.css?v=3" />
   </head>
 
   <body>
-    <div class="container">
-      <header>
-        <div class="header-row">
-          <h1 class="brand-title">
-            <a href="/" id="brand-link">smollog</a><span id="brand-alias-container" class="brand-alias-container" style="display: none;"><span class="brand-sep">/</span><a href="#" id="brand-alias-link" class="brand-alias-link"><span id="brand-alias-text"></span></a></span>
-          </h1>
-          <div class="header-actions">
-            <button
-              id="theme-toggle"
-              class="bracket-btn"
-              type="button"
-              aria-label="Toggle theme"
-              title="Toggle theme"
-            >
-              <span id="theme-text">[ dark ]</span>
-            </button>
-
-            <button
-              id="login-trigger"
-              class="bracket-btn"
-              type="button"
-              title="Admin login for CRUD operations"
-            >
-              [ login ]
-            </button>
-
-            <button
-              id="new-post-btn"
-              class="bracket-btn"
-              type="button"
-              style="display: none;"
-            >
-              [ + new post ]
-            </button>
-
-            <div id="auth-controls" style="display: none; align-items: center; gap: 8px;">
-              <span class="auth-badge" id="author-badge"></span>
-              <button id="copy-blog-btn" class="bracket-btn" type="button" title="Copy your public blog URL">
-                [ copy link ]
-              </button>
-              <button id="logout-btn" class="bracket-btn btn-danger" type="button">
-                [ logout ]
-              </button>
+    <!-- Site Header (Sticky Blur Header inspired by scobru-website) -->
+    <header class="site-header">
+      <div class="layout-container header-inner">
+        <div class="brandmark-wrap">
+          <a href="/" id="brand-link" class="brandmark" aria-label="smollog home">
+            <div class="brandmark-symbol" aria-hidden="true">
+              <!-- Geometric Sound & P2P Journal Bars -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="13" width="3.5" height="7" rx="1.75" fill="currentColor" />
+                <rect x="8.5" y="8" width="3.5" height="12" rx="1.75" fill="currentColor" />
+                <rect x="14" y="4" width="3.5" height="16" rx="1.75" fill="currentColor" />
+                <rect x="19.5" y="10" width="3.5" height="10" rx="1.75" fill="currentColor" />
+              </svg>
             </div>
+            <div class="brandmark-meta">
+              <div class="brandmark-title-row">
+                <span class="brandmark-name">smollog</span>
+                <span id="brand-alias-container" class="brand-alias-container" style="display: none;">
+                  <span class="brand-sep">/</span>
+                  <a href="#" id="brand-alias-link" class="brand-alias-link"><span id="brand-alias-text"></span></a>
+                </span>
+              </div>
+              <span class="brandmark-role">// zen log</span>
+            </div>
+          </a>
+        </div>
+
+        <nav class="header-actions" aria-label="Controls">
+          <button
+            id="theme-toggle"
+            class="bracket-btn nav-pill-btn"
+            type="button"
+            aria-label="Toggle theme"
+            title="Toggle color theme"
+          >
+            <span id="theme-text">[ dark ]</span>
+          </button>
+
+          <button
+            id="login-trigger"
+            class="bracket-btn nav-pill-btn"
+            type="button"
+            title="Admin login for CRUD operations"
+          >
+            [ login ]
+          </button>
+
+          <button
+            id="new-post-btn"
+            class="bracket-btn nav-pill-btn btn-new-post"
+            type="button"
+            style="display: none;"
+          >
+            [ + new post ]
+          </button>
+
+          <div id="auth-controls" style="display: none; align-items: center; gap: 8px;">
+            <span class="auth-badge" id="author-badge"></span>
+            <button id="copy-blog-btn" class="bracket-btn nav-pill-btn" type="button" title="Copy your public blog URL">
+              [ copy link ]
+            </button>
+            <button id="logout-btn" class="bracket-btn nav-pill-btn btn-danger" type="button">
+              [ logout ]
+            </button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <div class="layout-container main-wrapper">
+      <!-- Journal Hero & Status -->
+      <section class="journal-hero">
+        <div class="hero-eyebrow">
+          <div class="relay-status">
+            <span class="status-dot" id="relay-dot" title="Relay status indicator"></span>
+            <span class="relay-text-wrap">relay: delay.scobrudot.dev/zen (<span id="relay-text">connecting</span>)</span>
+            <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
+              <span class="meta-sep">•</span>
+              <span id="blog-author-label">author: <strong id="blog-author-name"></strong></span>
+              <span id="blog-author-pub" class="pub-short"></span>
+              <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copy author blog link">[ copy link ]</button>
+            </span>
           </div>
         </div>
 
-        <p class="bio">
-          Decentralized journal · authenticated writes in Zen userspace · offline-first
-        </p>
+        <h1 class="hero-title">
+          Decentralized Journal.<br />
+          <em>Zen Entropy Network.</em>
+        </h1>
 
-        <div class="relay-status">
-          <span class="status-dot" id="relay-dot"></span>
-          <span>relay: delay.scobrudot.dev/zen (<span id="relay-text">connecting</span>)</span>
-          <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
-            <span class="meta-sep">·</span>
-            <span id="blog-author-label">author: <strong id="blog-author-name"></strong></span>
-            <span id="blog-author-pub" class="pub-short"></span>
-            <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copy author blog link">[ copy link ]</button>
-          </span>
-        </div>
-      </header>
+        <p class="bio">
+          Zero-backend, cryptographic journaling powered by secp256k1 signatures, peer-to-peer graph relays, and offline-first storage.
+        </p>
+      </section>
 
       <main>
         <!-- List View -->
-        <section id="list-view">
-          <h2>[ Articles ]</h2>
+        <section id="list-view" class="list-section">
+          <div class="cat-section-header">
+            <h2 class="cat-section-title">[ Articles ]</h2>
+            <span class="catalog-count-badge" id="catalog-count-badge">// articles feed</span>
+          </div>
+
           <ul id="posts-container" class="posts-list"></ul>
+
           <div id="empty-state" class="empty-state" style="display: none;">
-            <p id="empty-title">// No author selected.</p>
-            <p id="empty-desc" style="font-size: 0.88rem; color: var(--desc-color);">
+            <div class="empty-icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
+            <p id="empty-title" class="empty-title">// No author selected.</p>
+            <p id="empty-desc" class="empty-desc">
               Authenticate with <strong>[ login ]</strong> to manage your journal, or open a published journal using <code>smollog.vercel.app/&lt;author_pub&gt;</code>.
             </p>
           </div>
@@ -106,13 +166,14 @@
         <section id="single-view" class="single-post"></section>
       </main>
 
-      <footer>
+      <!-- Footer (inspired by scobru-website footer layout) -->
+      <footer class="site-footer">
         <div class="footer-left">
-          <div class="footer-brand">smollog · Decentralized Journal</div>
+          <div class="footer-brand">smollog — Decentralized Journal</div>
           <div class="footer-author">
             <span>un progetto di</span>
             <a href="https://github.com/scobru" target="_blank" rel="noopener noreferrer" class="footer-author-link">scobru</a>
-            <span class="footer-sep">·</span>
+            <span class="footer-sep">•</span>
             <a href="https://scobrudot.dev" target="_blank" rel="noopener noreferrer" class="footer-sublink" title="Sito web">sito</a>
             <span class="footer-sep">/</span>
             <a href="https://github.com/scobru" target="_blank" rel="noopener noreferrer" class="footer-sublink" title="GitHub">github</a>
@@ -123,8 +184,8 @@
           </div>
         </div>
         <div class="footer-right">
-          <div id="footer-status" class="sys-status">// 0 posts indexed · system: online</div>
-          <div class="footer-meta">zen p2p · delay.scobrudot.dev</div>
+          <div id="footer-status" class="sys-status">// 0 posts indexed • system: online</div>
+          <div class="footer-meta">zen p2p • delay.scobrudot.dev</div>
         </div>
       </footer>
     </div>
@@ -134,12 +195,12 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3 id="auth-modal-title" class="modal-title">[ admin / login ]</h3>
-          <button class="bracket-btn" id="auth-cancel-btn" type="button">[ × ]</button>
+          <button class="bracket-btn nav-pill-btn modal-close-btn" id="auth-cancel-btn" type="button" aria-label="Close">[ × ]</button>
         </div>
         <form id="auth-form">
           <div id="auth-alert" class="alert-box alert-error"></div>
-          <p style="font-family: monospace; font-size: 0.85rem; color: var(--bio-color); margin-top: 0; margin-bottom: 15px;">
-            // Credentials deterministically derive your secp256k1 pair via PBKDF2. Only key holder can write to this userspace.
+          <p class="modal-helper-text">
+            // Credentials deterministically derive your secp256k1 keypair via PBKDF2. Only key holder can write to this userspace.
           </p>
           <div class="form-group">
             <label for="auth-user">Username</label>
@@ -164,7 +225,7 @@
             />
           </div>
           <div class="modal-actions">
-            <button type="submit" id="auth-submit-btn" class="bracket-btn">
+            <button type="submit" id="auth-submit-btn" class="btn-primary">
               [ authenticate ]
             </button>
           </div>
@@ -174,10 +235,10 @@
 
     <!-- Post Editor Modal -->
     <div id="editor-modal" class="modal" role="dialog" aria-labelledby="editor-modal-title" aria-modal="true">
-      <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-card modal-card-editor">
         <div class="modal-header">
           <h3 id="editor-modal-title" class="modal-title">[ + new post ]</h3>
-          <button class="bracket-btn" id="editor-cancel-btn" type="button">[ × ]</button>
+          <button class="bracket-btn nav-pill-btn modal-close-btn" id="editor-cancel-btn" type="button" aria-label="Close">[ × ]</button>
         </div>
         <form id="editor-form">
           <div class="form-group">
@@ -202,9 +263,12 @@
           </div>
 
           <div class="form-group">
-            <div class="editor-tabs">
-              <button type="button" class="bracket-btn" id="tab-write">[ write ]</button>
-              <button type="button" class="bracket-btn" id="tab-preview">[ preview ]</button>
+            <div class="editor-header-bar">
+              <label for="post-content">Article Content (Markdown)</label>
+              <div class="editor-tabs">
+                <button type="button" class="bracket-btn editor-tab-btn" id="tab-write">[ write ]</button>
+                <button type="button" class="bracket-btn editor-tab-btn" id="tab-preview">[ preview ]</button>
+              </div>
             </div>
             <textarea
               id="post-content"
@@ -216,7 +280,7 @@
           </div>
 
           <div class="modal-actions">
-            <button type="submit" id="editor-submit-btn" class="bracket-btn">
+            <button type="submit" id="editor-submit-btn" class="btn-primary">
               [ publish post ]
             </button>
           </div>
@@ -228,6 +292,6 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <!-- App Script -->
-    <script type="module" src="/app.js?v=5"></script>
+    <script type="module" src="/app.js?v=6"></script>
   </body>
 </html>
