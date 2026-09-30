@@ -110,34 +110,34 @@
 
     <!-- Main Content Layout -->
     <div class="layout-container main-wrapper">
-      <!-- Journal Hero & Status -->
-      <section class="journal-hero">
-        <div class="hero-eyebrow">
-          <div class="relay-status">
-            <span class="status-dot" id="relay-dot" title="Relay status indicator"></span>
-            <span class="relay-text-wrap">relay: delay.scobrudot.dev/zen (<span id="relay-text">connecting</span>)</span>
-            <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
-              <span class="meta-sep">•</span>
-              <span id="blog-author-label">author: <strong id="blog-author-name"></strong></span>
-              <span id="blog-author-pub" class="pub-short"></span>
-              <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copy author blog link">[ copy link ]</button>
-            </span>
-          </div>
-        </div>
-
-        <h1 class="hero-title">
-          Decentralized Journal.<br />
-          <em>Zen Entropy Network.</em>
-        </h1>
-
-        <p class="bio">
-          Zero-backend, cryptographic journaling powered by secp256k1 signatures, peer-to-peer graph relays, and offline-first storage.
-        </p>
-      </section>
-
       <main>
         <!-- List View -->
         <section id="list-view" class="list-section">
+          <!-- Journal Hero & Status (Displayed only on the Feed / List view) -->
+          <section id="journal-hero" class="journal-hero">
+            <div class="hero-eyebrow">
+              <div class="relay-status">
+                <span class="status-dot" id="relay-dot" title="Relay status indicator"></span>
+                <span class="relay-text-wrap">relay: delay.scobrudot.dev/zen (<span id="relay-text">connecting</span>)</span>
+                <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
+                  <span class="meta-sep">•</span>
+                  <span id="blog-author-label">author: <strong id="blog-author-name"></strong></span>
+                  <span id="blog-author-pub" class="pub-short"></span>
+                  <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copy author blog link">[ copy link ]</button>
+                </span>
+              </div>
+            </div>
+
+            <h1 class="hero-title">
+              Decentralized Journal.<br />
+              <em>Zen Entropy Network.</em>
+            </h1>
+
+            <p class="bio">
+              Zero-backend, cryptographic journaling powered by secp256k1 signatures, peer-to-peer graph relays, and offline-first storage.
+            </p>
+          </section>
+
           <div class="cat-section-header">
             <h2 class="cat-section-title">[ Articles ]</h2>
             <span class="catalog-count-badge" id="catalog-count-badge">// articles feed</span>

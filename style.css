@@ -760,6 +760,7 @@ a:hover {
 
 .single-post {
   display: none;
+  padding-top: clamp(1.5rem, 3.5vw, 2.5rem);
 }
 
 .single-post.active {
