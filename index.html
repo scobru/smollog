@@ -35,7 +35,7 @@
       })();
     </script>
     <base href="/" />
-    <link rel="stylesheet" href="/style.css?v=4" />
+    <link rel="stylesheet" href="/style.css?v=5" />
   </head>
 
   <body>
@@ -111,32 +111,16 @@
       <main>
         <!-- List View -->
         <section id="list-view" class="list-section">
-          <!-- Journal Hero (Visibile solo nella pagina principale) -->
-          <section id="journal-hero" class="journal-hero">
-            <div class="hero-eyebrow">
-              <div class="blog-badge-bar">
-                <span class="blog-topic-pill">Diario &amp; Note</span>
-                <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
-                  <span class="meta-sep">•</span>
-                  <span id="blog-author-label">di <strong id="blog-author-name"></strong></span>
-                  <span id="blog-author-pub" class="pub-short" style="display: none;"></span>
-                  <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copia link">[ copia link ]</button>
-                </span>
-              </div>
-            </div>
-
-            <h1 class="hero-title" id="hero-title">
-              Diario &amp; Note.<br />
-              <em>Pensieri, codice e progetti.</em>
-            </h1>
-
-            <p class="bio" id="hero-bio">
-              Uno spazio minimale per leggere, scrivere e condividere idee in totale libertà.
-            </p>
-          </section>
-
           <div class="cat-section-header">
-            <h2 class="cat-section-title">Articoli</h2>
+            <div class="cat-section-left">
+              <h2 class="cat-section-title">Articoli</h2>
+              <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
+                <span class="meta-sep">•</span>
+                <span id="blog-author-label">di <strong id="blog-author-name"></strong></span>
+                <span id="blog-author-pub" class="pub-short" style="display: none;"></span>
+                <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copia link del blog">[ copia link ]</button>
+              </span>
+            </div>
             <span class="catalog-count-badge" id="catalog-count-badge">Tutti gli articoli</span>
           </div>
 

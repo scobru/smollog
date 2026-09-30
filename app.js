@@ -263,24 +263,6 @@ function updateBlogAlias(alias, pub = activeAuthorPub) {
     }
   }
 
-  // Update hero title & bio to be user-friendly and author-centric
-  const heroTitle = document.getElementById('hero-title');
-  const heroBio = document.getElementById('hero-bio');
-  if (heroTitle) {
-    if (cleanAlias.toLowerCase() === 'scobru') {
-      heroTitle.innerHTML = 'Francesco Bruno.<br /><em>Pensieri, suoni e codice decentralizzato.</em>';
-    } else {
-      heroTitle.innerHTML = `Il diario di @${cleanAlias}.<br /><em>Pensieri, idee e storie.</em>`;
-    }
-  }
-  if (heroBio) {
-    if (cleanAlias.toLowerCase() === 'scobru') {
-      heroBio.textContent = 'Sviluppatore e sound designer. Note su tecnologia creativa, web e musica.';
-    } else {
-      heroBio.textContent = 'Articoli, riflessioni e note condivise in totale libertà.';
-    }
-  }
-
   // Update document title
   document.title = `smollog / ${cleanAlias}`;
 }
@@ -295,14 +277,6 @@ function clearBlogAlias() {
   }
   if (blogAuthorTag) {
     blogAuthorTag.style.display = 'none';
-  }
-  const heroTitle = document.getElementById('hero-title');
-  const heroBio = document.getElementById('hero-bio');
-  if (heroTitle) {
-    heroTitle.innerHTML = 'Diario &amp; Note.<br /><em>Pensieri, codice e progetti.</em>';
-  }
-  if (heroBio) {
-    heroBio.textContent = 'Uno spazio minimale per leggere, scrivere e condividere idee in totale libertà.';
   }
   document.title = 'smollog';
 }
@@ -1034,6 +1008,14 @@ function setupEventListeners() {
     } else {
       showToast('No author URL available.');
     }
+  });
+
+  authorCopyBtn?.addEventListener('click', () => {
+    const alias = currentBlogAlias;
+    const pub = activeAuthorPub || authorPub;
+    const link = alias ? `${window.location.origin}/${alias}` : (pub ? `${window.location.origin}/${pub}` : window.location.href);
+    navigator.clipboard.writeText(link);
+    showToast('Link del blog copiato!');
   });
 
   authForm?.addEventListener('submit', (e) => {

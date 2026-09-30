@@ -405,47 +405,8 @@ a:hover {
 }
 
 /* ==========================================================================
-   Hero Section
+   Status Indicator & Badges
    ========================================================================== */
-
-.journal-hero {
-  padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(1.75rem, 3.5vw, 2.5rem);
-  border-bottom: 1px dashed var(--color-border-subtle);
-  margin-bottom: 2.5rem;
-}
-
-.hero-eyebrow {
-  margin-bottom: 1.25rem;
-}
-
-.blog-badge-bar {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.blog-topic-pill {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  background: var(--color-bg-tag);
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border-subtle);
-}
-
-.blog-author-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-}
 
 .status-dot {
   width: 8px;
@@ -475,13 +436,6 @@ a:hover {
   }
 }
 
-.blog-author-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
 .pub-short {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -497,31 +451,6 @@ a:hover {
   margin: 0 2px;
 }
 
-.hero-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.3rem, 5.2vw, 3.8rem);
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.045em;
-  color: var(--color-text-primary);
-  margin-bottom: 1rem;
-}
-
-.hero-title em {
-  font-style: italic;
-  font-weight: 400;
-  color: var(--color-text-secondary);
-}
-
-.bio {
-  font-family: var(--font-mono);
-  font-size: clamp(0.88rem, 1.5vw, 1.02rem);
-  color: var(--color-text-secondary);
-  max-width: 720px;
-  line-height: 1.6;
-  margin: 0;
-}
-
 /* Auth Badges */
 .auth-badge {
   font-family: var(--font-mono);
@@ -534,16 +463,29 @@ a:hover {
 }
 
 /* ==========================================================================
-   Articles Section Header (scobru-website cat-section-header)
+   Articles Section (List View)
    ========================================================================== */
+
+.list-section {
+  padding-top: clamp(1.5rem, 3.5vw, 2.5rem);
+}
 
 .cat-section-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   margin-bottom: 1.75rem;
   border-bottom: 1px dashed var(--color-border-subtle);
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.85rem;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cat-section-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .cat-section-title {
@@ -553,6 +495,17 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
+  margin: 0;
+}
+
+.blog-author-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
 }
 
 .catalog-count-badge {
