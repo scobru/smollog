@@ -6,8 +6,11 @@ const RELAY_URL = 'https://delay.scobrudot.dev/zen';
 const RELAY_URLS = ['https://hmhrmqorxhmzaa7exsbkdmelia.srv.us/zen', 'https://delay.scobrudot.dev/zen'];
 const DEFAULT_SALT_PREFIX = 'scobru:zen:blog:';
 const KNOWN_ALIASES = {
+  // Correct scobru public key (OVI...3lNA)
+  '0E2ktahyK9Ngm8bocvimGuKnOVIba3lNA7451zGqcfwn1': 'scobru',
+  // Variant with swapped l/I for backwards compatibility
   '0E2ktahyK9Ngm8bocvimGuKnOVlba3INA7451zGqcfwn1': 'scobru',
-  'scobru': '0E2ktahyK9Ngm8bocvimGuKnOVlba3INA7451zGqcfwn1'
+  'scobru': '0E2ktahyK9Ngm8bocvimGuKnOVIba3lNA7451zGqcfwn1'
 };
 
 // State
@@ -316,9 +319,9 @@ function resolvePubFromCandidate(candidate) {
   }
   try {
     const cached = localStorage.getItem('zen_pub_for_alias_' + lower);
-    if (cached) return cached;
+    if (cached && cached.length >= 35) return cached;
   } catch (e) { }
-  return clean;
+  return null;
 }
 
 function resolveAuthorAlias(pub) {
@@ -385,8 +388,8 @@ function resolveAuthorAlias(pub) {
 
 let activeSubscription = null;
 
-function subscribeToAuthor(pub) {
-  if (!pub) {
+function subscribeToAuthor(candidate) {
+  if (!candidate) {
     authorPub = null;
     activeAuthorPub = null;
     localStorage.removeItem('zen_blog_author_pub');
@@ -396,23 +399,52 @@ function subscribeToAuthor(pub) {
     return;
   }
 
-  if (activeAuthorPub === pub) {
+  // 1. Resolve pubkey from candidate (could be pubkey itself, or alias like 'scobru')
+  const resolvedPub = resolvePubFromCandidate(candidate);
+
+  // If candidate was an alias that resolved to a pubkey, immediately set the blog alias
+  if (resolvedPub && resolvedPub !== candidate) {
+    updateBlogAlias(candidate, resolvedPub);
+  }
+
+  const targetPub = resolvedPub || (candidate.length >= 35 ? candidate : null);
+
+  if (targetPub && activeAuthorPub === targetPub && authorPub === targetPub) {
     return;
   }
 
-  authorPub = pub;
-  activeAuthorPub = pub;
-  localStorage.setItem('zen_blog_author_pub', pub);
+  authorPub = targetPub;
+  activeAuthorPub = targetPub || candidate;
+  if (targetPub) {
+    localStorage.setItem('zen_blog_author_pub', targetPub);
+  }
 
   // Clear existing items
   postsMap.clear();
-  resolveAuthorAlias(pub);
+  if (targetPub) {
+    resolveAuthorAlias(targetPub);
+  }
   renderPostsList();
 
   if (!zen) return;
 
-  // Subscribe to author's posts namespace
-  zen.get('~' + pub).get('posts').map().on((post, id) => {
+  // If candidate is an alias not yet in cache/dictionary, query Zen graph
+  if (!targetPub && candidate.length < 35) {
+    zen.get('smollog_aliases').get(candidate.toLowerCase()).once((foundPub) => {
+      if (foundPub && typeof foundPub === 'string' && foundPub.length >= 35) {
+        try {
+          localStorage.setItem('zen_pub_for_alias_' + candidate.toLowerCase(), foundPub);
+          localStorage.setItem('zen_alias_' + foundPub, candidate);
+        } catch (e) { }
+        subscribeToAuthor(foundPub);
+        updateBlogAlias(candidate, foundPub);
+      }
+    });
+    return;
+  }
+
+  // Subscribe to author's posts namespace using the resolved public key
+  zen.get('~' + targetPub).get('posts').map().on((post, id) => {
     if (!post || post.deleted === true) {
       postsMap.delete(id);
     } else {
@@ -423,12 +455,12 @@ function subscribeToAuthor(pub) {
         tags: Array.isArray(post.tags) ? post.tags : (post.tags ? String(post.tags).split(',').map(t => t.trim()) : []),
         createdAt: post.createdAt || post.date || Date.now(),
         updatedAt: post.updatedAt || post.createdAt || Date.now(),
-        authorPub: pub,
-        authorAlias: post.authorAlias || null
+        authorPub: targetPub,
+        authorAlias: post.authorAlias || currentBlogAlias || null
       });
 
-      if (post.authorAlias) {
-        updateBlogAlias(post.authorAlias, pub);
+      if (post.authorAlias && !currentBlogAlias) {
+        updateBlogAlias(post.authorAlias, targetPub);
       }
     }
 
@@ -440,22 +472,22 @@ function subscribeToAuthor(pub) {
   });
 
   // Explicitly listen to author's alias
-  zen.get('~' + pub).get('alias').on((alias) => {
+  zen.get('~' + targetPub).get('alias').on((alias) => {
     if (alias && typeof alias === 'string') {
-      updateBlogAlias(alias.trim(), pub);
+      updateBlogAlias(alias.trim(), targetPub);
     }
   });
 
-  zen.get('smollog_authors').get(pub).get('alias').on((alias) => {
+  zen.get('smollog_authors').get(targetPub).get('alias').on((alias) => {
     if (alias && typeof alias === 'string') {
-      updateBlogAlias(alias.trim(), pub);
+      updateBlogAlias(alias.trim(), targetPub);
     }
   });
 
   // Verify pub registration
-  zen.get('~' + pub).get('pub').once((val) => {
+  zen.get('~' + targetPub).get('pub').once((val) => {
     if (val) {
-      console.log('Author namespace confirmed on relay:', pub);
+      console.log('Author namespace confirmed on relay:', targetPub);
     }
   });
 }
@@ -605,12 +637,14 @@ function getPostIdFromLocation() {
 }
 
 function getPostUrl(postId, targetPub = authorPub) {
-  const base = targetPub ? `/${targetPub}` : '';
+  const currentPathAuthor = getAuthorFromLocation();
+  const base = currentPathAuthor ? `/${currentPathAuthor}` : (currentBlogAlias ? `/${currentBlogAlias}` : (targetPub ? `/${targetPub}` : ''));
   return `${base}?post=${encodeURIComponent(postId)}`;
 }
 
 function getHomeUrl(targetPub = authorPub) {
-  return targetPub ? `/${targetPub}` : '/';
+  const currentPathAuthor = getAuthorFromLocation();
+  return currentPathAuthor ? `/${currentPathAuthor}` : (currentBlogAlias ? `/${currentBlogAlias}` : (targetPub ? `/${targetPub}` : '/'));
 }
 
 // --- Render Views ---
@@ -853,8 +887,16 @@ async function handleLogin(username, password) {
     currentPair = pair;
     currentUsername = username;
 
-    // Register identity on graph
+    // Register identity and alias on graph
     zen.get('~' + pair.pub).get('pub').put(pair.pub, null, { authenticator: pair });
+    zen.get('~' + pair.pub).get('alias').put(cleanUser, null, { authenticator: pair });
+    zen.get('smollog_aliases').get(cleanUser).put(pair.pub);
+
+    // Save alias mapping in localStorage
+    try {
+      localStorage.setItem('zen_alias_' + pair.pub, cleanUser);
+      localStorage.setItem('zen_pub_for_alias_' + cleanUser, pair.pub);
+    } catch (e) { }
 
     // Store in session storage for refreshing convenience
     sessionStorage.setItem('zen_blog_user', username);
