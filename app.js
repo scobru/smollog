@@ -251,13 +251,30 @@ function updateBlogAlias(alias, pub = activeAuthorPub) {
     brandAliasLink.setAttribute('href', `/${pub}`);
   }
 
-  // Update author info tag in relay status bar
+  // Update author info tag
   if (blogAuthorTag) {
     blogAuthorTag.style.display = 'inline-flex';
     if (blogAuthorName) blogAuthorName.textContent = '@' + cleanAlias;
-    if (blogAuthorPub && pub) {
-      blogAuthorPub.textContent = `(~${pub.slice(0, 8)}...)`;
-      blogAuthorPub.title = `Pubkey: ${pub}`;
+    if (blogAuthorPub) {
+      blogAuthorPub.style.display = 'none';
+    }
+  }
+
+  // Update hero title & bio to be user-friendly and author-centric
+  const heroTitle = document.getElementById('hero-title');
+  const heroBio = document.getElementById('hero-bio');
+  if (heroTitle) {
+    if (cleanAlias.toLowerCase() === 'scobru') {
+      heroTitle.innerHTML = 'Francesco Bruno.<br /><em>Pensieri, suoni e codice decentralizzato.</em>';
+    } else {
+      heroTitle.innerHTML = `Il diario di @${cleanAlias}.<br /><em>Pensieri, idee e storie.</em>`;
+    }
+  }
+  if (heroBio) {
+    if (cleanAlias.toLowerCase() === 'scobru') {
+      heroBio.textContent = 'Sviluppatore e sound designer. Note su tecnologia creativa, web e musica.';
+    } else {
+      heroBio.textContent = 'Articoli, riflessioni e note condivise in totale libertà.';
     }
   }
 
@@ -275,6 +292,14 @@ function clearBlogAlias() {
   }
   if (blogAuthorTag) {
     blogAuthorTag.style.display = 'none';
+  }
+  const heroTitle = document.getElementById('hero-title');
+  const heroBio = document.getElementById('hero-bio');
+  if (heroTitle) {
+    heroTitle.innerHTML = 'Diario &amp; Note.<br /><em>Pensieri, codice e progetti.</em>';
+  }
+  if (heroBio) {
+    heroBio.textContent = 'Uno spazio minimale per leggere, scrivere e condividere idee in totale libertà.';
   }
   document.title = 'smollog';
 }
@@ -513,7 +538,7 @@ async function updatePost(id, title, content, tags) {
 async function deletePost(id) {
   if (!currentPair) throw new Error('Not authenticated');
 
-  const confirmDelete = confirm('Are you sure you want to delete this post from the Zen graph?');
+  const confirmDelete = confirm('Sei sicuro di voler eliminare questo articolo?');
   if (!confirmDelete) return;
 
   const existing = postsMap.get(id);
@@ -533,7 +558,7 @@ async function deletePost(id) {
           reject(new Error(ack.err));
         } else {
           postsMap.delete(id);
-          showToast('Post deleted.');
+          showToast('Articolo eliminato.');
           if (currentViewPostId === id) {
             navigateTo('/');
           } else {
@@ -599,31 +624,29 @@ function renderPostsList() {
 
   const catalogCountBadge = document.getElementById("catalog-count-badge");
   if (catalogCountBadge) {
-    catalogCountBadge.textContent = authorPub ? `// ${posts.length} published` : "// articles feed";
+    catalogCountBadge.textContent = authorPub ? `${posts.length} ${posts.length === 1 ? "articolo" : "articoli"}` : "Tutti gli articoli";
   }
 
   if (footerStatus) {
     if (!authorPub) {
-      footerStatus.textContent = '// smollog • zen entropy network';
+      footerStatus.textContent = "blog pronto";
     } else {
-      footerStatus.textContent = `// ${posts.length} post${posts.length === 1 ? '' : 's'} indexed • system: online`;
+      footerStatus.textContent = `${posts.length} ${posts.length === 1 ? "articolo pubblicato" : "articoli pubblicati"}`;
     }
   }
 
   if (posts.length === 0) {
     postsContainer.innerHTML = '';
     if (!authorPub) {
-      if (emptyTitle) emptyTitle.textContent = '// No author selected.';
+      if (emptyTitle) emptyTitle.textContent = 'Nessun autore selezionato';
       if (emptyDesc) {
-        emptyDesc.innerHTML = 'Authenticate with <strong>[ login ]</strong> to manage your journal, or open a published journal using <code>smollog.vercel.app/&lt;author_pub&gt;</code>.';
+        emptyDesc.innerHTML = 'Accedi con <strong>[ accedi ]</strong> per iniziare a scrivere, oppure visita il blog di un autore.';
       }
     } else {
       const isOwner = currentPair && authorPub === currentPair.pub;
-      if (emptyTitle) emptyTitle.textContent = `// No articles found in ~${authorPub.slice(0, 10)}...`;
+      if (emptyTitle) emptyTitle.textContent = 'Nessun articolo ancora pubblicato';
       if (emptyDesc) {
-        emptyDesc.innerHTML = isOwner
-          ? 'You haven\'t published any posts yet. Click <strong>[ + new post ]</strong> to write your first entry!'
-          : 'This author has not published any articles in this userspace yet.';
+        emptyDesc.innerHTML = isOwner ? 'Non hai ancora pubblicato articoli. Clicca su <strong>[ + scrivi ]</strong> per pubblicare il tuo primo post!' : 'Questo autore non ha ancora pubblicato articoli.';
       }
     }
     emptyState.style.display = 'block';
@@ -644,8 +667,8 @@ function renderPostsList() {
 
     const ownerControls = isOwner ? `
       <div class="post-actions">
-        <button class="bracket-btn nav-pill-btn edit-btn" data-id="${post.id}">[ edit ]</button>
-        <button class="bracket-btn nav-pill-btn btn-danger delete-btn" data-id="${post.id}">[ delete ]</button>
+        <button class="bracket-btn nav-pill-btn edit-btn" data-id="${post.id}">[ modifica ]</button>
+        <button class="bracket-btn nav-pill-btn btn-danger delete-btn" data-id="${post.id}">[ elimina ]</button>
       </div>
     ` : '';
 
@@ -655,7 +678,7 @@ function renderPostsList() {
       <li class="post-item" id="item-${post.id}">
         <div class="post-meta-row">
           <span>${dateStr} • ${readingTime}</span>
-          ${isOwner ? '<span class="status-badge" style="border-color: var(--success-color); color: var(--success-color); background: var(--success-bg);">AUTHOR</span>' : ''}
+          ${isOwner ? '<span class="status-badge" style="border-color: var(--success-color); color: var(--success-color); background: var(--success-bg);">Autore</span>' : ''}
         </div>
         <h3 class="post-title">
           <a href="${postHref}" data-nav="${post.id}">${post.title}</a>
@@ -730,16 +753,16 @@ function renderSinglePost(postId) {
           <span class="meta-sep">•</span>
           <span>${readingTime}</span>
           <span class="meta-sep">•</span>
-          <span title="Author Public Key">~${post.authorPub ? post.authorPub.slice(0, 10) + '...' : 'zen'}</span>
+          ${post.authorAlias || currentBlogAlias ? `<span class="pub-short">@${post.authorAlias || currentBlogAlias}</span>` : ''}
         </div>
         <h1 class="single-post-title">${post.title}</h1>
         <div class="post-footer-row">
           <div class="post-tags">${tagsHtml}</div>
           <div class="post-actions">
-            <button class="bracket-btn nav-pill-btn" id="copy-link-btn">[ copy permalink ]</button>
+            <button class="bracket-btn nav-pill-btn" id="copy-link-btn">[ copia link ]</button>
             ${isOwner ? `
-              <button class="bracket-btn nav-pill-btn edit-btn" id="single-edit-btn">[ edit ]</button>
-              <button class="bracket-btn nav-pill-btn btn-danger" id="single-delete-btn">[ delete ]</button>
+              <button class="bracket-btn nav-pill-btn edit-btn" id="single-edit-btn">[ modifica ]</button>
+              <button class="bracket-btn nav-pill-btn btn-danger" id="single-delete-btn">[ elimina ]</button>
             ` : ''}
           </div>
         </div>
@@ -759,7 +782,7 @@ function renderSinglePost(postId) {
   singleView.querySelector('#copy-link-btn')?.addEventListener('click', () => {
     const postUrl = `${window.location.origin}${getPostUrl(postId, post.authorPub || authorPub)}`;
     navigator.clipboard.writeText(postUrl);
-    showToast('Permalink copied to clipboard.');
+    showToast('Link dell\'articolo copiato!');
   });
 
   if (isOwner) {
@@ -812,7 +835,7 @@ function updateAuthUI() {
     loginTriggerBtn.style.display = 'none';
     authControls.style.display = 'inline-flex';
     newPostBtn.style.display = 'inline-flex';
-    authorBadge.textContent = `[ author: ${currentUsername} (~${currentPair.pub.slice(0, 6)}) ]`;
+    authorBadge.textContent = `@${currentUsername}`;
   } else {
     loginTriggerBtn.style.display = 'inline-flex';
     authControls.style.display = 'none';
@@ -822,7 +845,7 @@ function updateAuthUI() {
 
 async function handleLogin(username, password) {
   authAlert.style.display = 'none';
-  authSubmitBtn.textContent = '[ deriving pair... ]';
+  authSubmitBtn.textContent = 'Accesso in corso...';
   authSubmitBtn.disabled = true;
 
   try {
@@ -848,13 +871,13 @@ async function handleLogin(username, password) {
     updateAuthUI();
     closeAuthModal();
     handleRoute();
-    showToast(`Logged in! Your blog URL: ${window.location.origin}/${pair.pub}`, 4000);
+    showToast(`Accesso effettuato! Benvenuto, @${username}`, 3500);
   } catch (err) {
     console.error('Authentication error:', err);
     authAlert.textContent = `Auth error: ${err.message}`;
     authAlert.style.display = 'block';
   } finally {
-    authSubmitBtn.textContent = '[ authenticate ]';
+    authSubmitBtn.textContent = 'Accedi';
     authSubmitBtn.disabled = false;
   }
 }
@@ -868,7 +891,7 @@ function handleLogout() {
   subscribeToAuthor(null);
   window.history.pushState({}, '', '/');
   handleRoute();
-  showToast('Logged out.');
+  showToast('Disconnessione effettuata.');
 }
 
 function openAuthModal() {
@@ -886,7 +909,7 @@ function closeAuthModal() {
 
 function openCreateModal() {
   editingPostId = null;
-  editorModalTitle.textContent = '[ + new post ]';
+  editorModalTitle.textContent = '+ Nuovo Articolo';
   editorForm.reset();
   setEditorTab('write');
   editorModal.classList.add('is-open');
@@ -898,7 +921,7 @@ function openEditModal(postId) {
   if (!post) return;
 
   editingPostId = postId;
-  editorModalTitle.textContent = `[ edit post: ${post.title} ]`;
+  editorModalTitle.textContent = `Modifica: ${post.title}`;
   postTitleInput.value = post.title || '';
   postTagsInput.value = normalizeTags(post.tags).join(', ');
   postContentInput.value = post.content || '';
@@ -965,7 +988,7 @@ function setupEventListeners() {
     if (targetPub) {
       const url = `${window.location.origin}/${targetPub}`;
       navigator.clipboard.writeText(url);
-      showToast(`Copied blog URL: ${url}`);
+      showToast('Link del blog copiato!');
     } else {
       showToast('No author URL available.');
     }
@@ -992,27 +1015,27 @@ function setupEventListeners() {
     const tags = normalizeTags(postTagsInput.value);
 
     if (!title || !content) {
-      alert('Please provide both title and content.');
+      alert('Inserisci sia il titolo che il contenuto.');
       return;
     }
 
-    editorSubmitBtn.textContent = '[ publishing... ]';
+    editorSubmitBtn.textContent = 'Salvataggio in corso...';
     editorSubmitBtn.disabled = true;
 
     try {
       if (editingPostId) {
         await updatePost(editingPostId, title, content, tags);
-        showToast('Post updated.');
+        showToast('Articolo aggiornato con successo.');
       } else {
         await createPost(title, content, tags);
-        showToast('Post published.');
+        showToast('Articolo pubblicato con successo!');
       }
       closeEditorModal();
     } catch (err) {
       console.error('Save post error:', err);
       alert('Failed to save post: ' + err.message);
     } finally {
-      editorSubmitBtn.textContent = '[ publish post ]';
+      editorSubmitBtn.textContent = 'Pubblica articolo';
       editorSubmitBtn.disabled = false;
     }
   });

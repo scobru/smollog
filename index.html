@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="smollog — Minimal decentralized journal powered by Zen Entropy Network."
+      content="smollog — Diario personale e blog minimale."
     />
-    <title id="site-title">smollog — Decentralized Journal</title>
+    <title id="site-title">smollog — Diario minimale</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#fbfaf4" id="theme-color-meta" />
@@ -35,17 +35,16 @@
       })();
     </script>
     <base href="/" />
-    <link rel="stylesheet" href="/style.css?v=3" />
+    <link rel="stylesheet" href="/style.css?v=4" />
   </head>
 
   <body>
-    <!-- Site Header (Sticky Blur Header inspired by scobru-website) -->
+    <!-- Site Header -->
     <header class="site-header">
       <div class="layout-container header-inner">
         <div class="brandmark-wrap">
           <a href="/" id="brand-link" class="brandmark" aria-label="smollog home">
             <div class="brandmark-symbol" aria-hidden="true">
-              <!-- Geometric Sound & P2P Journal Bars -->
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="13" width="3.5" height="7" rx="1.75" fill="currentColor" />
                 <rect x="8.5" y="8" width="3.5" height="12" rx="1.75" fill="currentColor" />
@@ -61,18 +60,17 @@
                   <a href="#" id="brand-alias-link" class="brand-alias-link"><span id="brand-alias-text"></span></a>
                 </span>
               </div>
-              <span class="brandmark-role">// zen log</span>
             </div>
           </a>
         </div>
 
-        <nav class="header-actions" aria-label="Controls">
+        <nav class="header-actions" aria-label="Controlli">
           <button
             id="theme-toggle"
             class="bracket-btn nav-pill-btn"
             type="button"
-            aria-label="Toggle theme"
-            title="Toggle color theme"
+            aria-label="Cambia tema"
+            title="Cambia tema chiaro/scuro"
           >
             <span id="theme-text">[ dark ]</span>
           </button>
@@ -81,9 +79,9 @@
             id="login-trigger"
             class="bracket-btn nav-pill-btn"
             type="button"
-            title="Admin login for CRUD operations"
+            title="Accedi al tuo blog"
           >
-            [ login ]
+            [ accedi ]
           </button>
 
           <button
@@ -92,16 +90,16 @@
             type="button"
             style="display: none;"
           >
-            [ + new post ]
+            [ + scrivi ]
           </button>
 
           <div id="auth-controls" style="display: none; align-items: center; gap: 8px;">
             <span class="auth-badge" id="author-badge"></span>
-            <button id="copy-blog-btn" class="bracket-btn nav-pill-btn" type="button" title="Copy your public blog URL">
-              [ copy link ]
+            <button id="copy-blog-btn" class="bracket-btn nav-pill-btn" type="button" title="Copia il link del tuo blog">
+              [ copia link ]
             </button>
             <button id="logout-btn" class="bracket-btn nav-pill-btn btn-danger" type="button">
-              [ logout ]
+              [ esci ]
             </button>
           </div>
         </nav>
@@ -113,34 +111,33 @@
       <main>
         <!-- List View -->
         <section id="list-view" class="list-section">
-          <!-- Journal Hero & Status (Displayed only on the Feed / List view) -->
+          <!-- Journal Hero (Visibile solo nella pagina principale) -->
           <section id="journal-hero" class="journal-hero">
             <div class="hero-eyebrow">
-              <div class="relay-status">
-                <span class="status-dot" id="relay-dot" title="Relay status indicator"></span>
-                <span class="relay-text-wrap">relay: delay.scobrudot.dev/zen (<span id="relay-text">connecting</span>)</span>
+              <div class="blog-badge-bar">
+                <span class="blog-topic-pill">Diario &amp; Note</span>
                 <span id="blog-author-tag" class="blog-author-tag" style="display: none;">
                   <span class="meta-sep">•</span>
-                  <span id="blog-author-label">author: <strong id="blog-author-name"></strong></span>
-                  <span id="blog-author-pub" class="pub-short"></span>
-                  <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copy author blog link">[ copy link ]</button>
+                  <span id="blog-author-label">di <strong id="blog-author-name"></strong></span>
+                  <span id="blog-author-pub" class="pub-short" style="display: none;"></span>
+                  <button id="author-copy-btn" class="bracket-btn-xs" type="button" title="Copia link">[ copia link ]</button>
                 </span>
               </div>
             </div>
 
-            <h1 class="hero-title">
-              Decentralized Journal.<br />
-              <em>Zen Entropy Network.</em>
+            <h1 class="hero-title" id="hero-title">
+              Diario &amp; Note.<br />
+              <em>Pensieri, codice e progetti.</em>
             </h1>
 
-            <p class="bio">
-              Zero-backend, cryptographic journaling powered by secp256k1 signatures, peer-to-peer graph relays, and offline-first storage.
+            <p class="bio" id="hero-bio">
+              Uno spazio minimale per leggere, scrivere e condividere idee in totale libertà.
             </p>
           </section>
 
           <div class="cat-section-header">
-            <h2 class="cat-section-title">[ Articles ]</h2>
-            <span class="catalog-count-badge" id="catalog-count-badge">// articles feed</span>
+            <h2 class="cat-section-title">Articoli</h2>
+            <span class="catalog-count-badge" id="catalog-count-badge">Tutti gli articoli</span>
           </div>
 
           <ul id="posts-container" class="posts-list"></ul>
@@ -155,9 +152,9 @@
                 <polyline points="10 9 9 9 8 9"></polyline>
               </svg>
             </div>
-            <p id="empty-title" class="empty-title">// No author selected.</p>
+            <p id="empty-title" class="empty-title">Nessun autore selezionato</p>
             <p id="empty-desc" class="empty-desc">
-              Authenticate with <strong>[ login ]</strong> to manage your journal, or open a published journal using <code>smollog.vercel.app/&lt;author_pub&gt;</code>.
+              Effettua l'accesso con <strong>[ accedi ]</strong> per iniziare a scrivere, oppure visita il blog di un autore.
             </p>
           </div>
         </section>
@@ -166,10 +163,10 @@
         <section id="single-view" class="single-post"></section>
       </main>
 
-      <!-- Footer (inspired by scobru-website footer layout) -->
+      <!-- Footer -->
       <footer class="site-footer">
         <div class="footer-left">
-          <div class="footer-brand">smollog — Decentralized Journal</div>
+          <div class="footer-brand">smollog — Diario minimale</div>
           <div class="footer-author">
             <span>un progetto di</span>
             <a href="https://github.com/scobru" target="_blank" rel="noopener noreferrer" class="footer-author-link">scobru</a>
@@ -184,8 +181,11 @@
           </div>
         </div>
         <div class="footer-right">
-          <div id="footer-status" class="sys-status">// 0 posts indexed • system: online</div>
-          <div class="footer-meta">zen p2p • delay.scobrudot.dev</div>
+          <div id="footer-status" class="sys-status">blog pronto</div>
+          <div class="footer-meta">
+            <span class="status-dot online" id="relay-dot" title="Stato connessione"></span>
+            <span id="relay-text">online</span>
+          </div>
         </div>
       </footer>
     </div>
@@ -194,23 +194,23 @@
     <div id="auth-modal" class="modal" role="dialog" aria-labelledby="auth-modal-title" aria-modal="true">
       <div class="modal-card">
         <div class="modal-header">
-          <h3 id="auth-modal-title" class="modal-title">[ admin / login ]</h3>
-          <button class="bracket-btn nav-pill-btn modal-close-btn" id="auth-cancel-btn" type="button" aria-label="Close">[ × ]</button>
+          <h3 id="auth-modal-title" class="modal-title">Accedi al tuo blog</h3>
+          <button class="bracket-btn nav-pill-btn modal-close-btn" id="auth-cancel-btn" type="button" aria-label="Chiudi">[ × ]</button>
         </div>
         <form id="auth-form">
           <div id="auth-alert" class="alert-box alert-error"></div>
           <p class="modal-helper-text">
-            // Credentials deterministically derive your secp256k1 keypair via PBKDF2. Only key holder can write to this userspace.
+            Inserisci il tuo nome utente e password per scrivere e gestire i tuoi articoli.
           </p>
           <div class="form-group">
-            <label for="auth-user">Username</label>
+            <label for="auth-user">Nome utente</label>
             <input
               type="text"
               id="auth-user"
               class="form-input"
               required
               autocomplete="username"
-              placeholder="e.g. scobru"
+              placeholder="es. scobru"
             />
           </div>
           <div class="form-group">
@@ -221,12 +221,12 @@
               class="form-input"
               required
               autocomplete="current-password"
-              placeholder="Master passphrase"
+              placeholder="La tua password"
             />
           </div>
           <div class="modal-actions">
             <button type="submit" id="auth-submit-btn" class="btn-primary">
-              [ authenticate ]
+              Accedi
             </button>
           </div>
         </form>
@@ -237,51 +237,51 @@
     <div id="editor-modal" class="modal" role="dialog" aria-labelledby="editor-modal-title" aria-modal="true">
       <div class="modal-card modal-card-editor">
         <div class="modal-header">
-          <h3 id="editor-modal-title" class="modal-title">[ + new post ]</h3>
-          <button class="bracket-btn nav-pill-btn modal-close-btn" id="editor-cancel-btn" type="button" aria-label="Close">[ × ]</button>
+          <h3 id="editor-modal-title" class="modal-title">+ Nuovo Articolo</h3>
+          <button class="bracket-btn nav-pill-btn modal-close-btn" id="editor-cancel-btn" type="button" aria-label="Chiudi">[ × ]</button>
         </div>
         <form id="editor-form">
           <div class="form-group">
-            <label for="post-title">Title</label>
+            <label for="post-title">Titolo</label>
             <input
               type="text"
               id="post-title"
               class="form-input"
               required
-              placeholder="Post title"
+              placeholder="Titolo dell'articolo"
             />
           </div>
 
           <div class="form-group">
-            <label for="post-tags">Tags (comma-separated)</label>
+            <label for="post-tags">Tag (separati da virgola)</label>
             <input
               type="text"
               id="post-tags"
               class="form-input"
-              placeholder="p2p, zen, web3, synth"
+              placeholder="musica, codice, idee"
             />
           </div>
 
           <div class="form-group">
             <div class="editor-header-bar">
-              <label for="post-content">Article Content (Markdown)</label>
+              <label for="post-content">Contenuto (Markdown)</label>
               <div class="editor-tabs">
-                <button type="button" class="bracket-btn editor-tab-btn" id="tab-write">[ write ]</button>
-                <button type="button" class="bracket-btn editor-tab-btn" id="tab-preview">[ preview ]</button>
+                <button type="button" class="bracket-btn editor-tab-btn" id="tab-write">[ scrivi ]</button>
+                <button type="button" class="bracket-btn editor-tab-btn" id="tab-preview">[ anteprima ]</button>
               </div>
             </div>
             <textarea
               id="post-content"
               class="form-textarea"
               required
-              placeholder="Write your article in Markdown...&#10;&#10;## Section&#10;Your thoughts here..."
+              placeholder="Scrivi qui il tuo articolo in Markdown...&#10;&#10;## Paragrafo&#10;I tuoi pensieri qui..."
             ></textarea>
             <div id="editor-preview" class="editor-preview post-content"></div>
           </div>
 
           <div class="modal-actions">
             <button type="submit" id="editor-submit-btn" class="btn-primary">
-              [ publish post ]
+              Pubblica articolo
             </button>
           </div>
         </form>
@@ -292,6 +292,6 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <!-- App Script -->
-    <script type="module" src="/app.js?v=6"></script>
+    <script type="module" src="/app.js?v=7"></script>
   </body>
 </html>
