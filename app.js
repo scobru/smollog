@@ -857,6 +857,7 @@ async function handleLogin(username, password) {
   authSubmitBtn.disabled = true;
 
   try {
+    const cleanUser = username.trim().toLowerCase();
     const pair = await derivePair(username, password);
     currentPair = pair;
     currentUsername = username;
