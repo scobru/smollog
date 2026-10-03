@@ -8,11 +8,12 @@ const RELAY_URL = 'https://delay.scobrudot.dev/zen';
 const RELAY_URLS = ['https://hmhrmqorxhmzaa7exsbkdmelia.srv.us/zen', 'https://delay.scobrudot.dev/zen'];
 const DEFAULT_SALT_PREFIX = 'scobru:zen:blog:';
 const KNOWN_ALIASES = {
-  // Correct scobru public key (OVI...3lNA)
+  // Current scobru public key (FID identity derivation, see identity.js)
+  '0DGULtYbQYzYDlRUddrRNoS7NrEzGIZAsQrXSKQYThMX1': 'scobru',
+  // Earlier scobru keys (PBKDF2 identity, and a variant with swapped l/I): kept so old links still show the alias
   '0E2ktahyK9Ngm8bocvimGuKnOVIba3lNA7451zGqcfwn1': 'scobru',
-  // Variant with swapped l/I for backwards compatibility
   '0E2ktahyK9Ngm8bocvimGuKnOVlba3INA7451zGqcfwn1': 'scobru',
-  'scobru': '0E2ktahyK9Ngm8bocvimGuKnOVIba3lNA7451zGqcfwn1'
+  'scobru': '0DGULtYbQYzYDlRUddrRNoS7NrEzGIZAsQrXSKQYThMX1'
 };
 
 // State
