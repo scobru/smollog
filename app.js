@@ -1,5 +1,7 @@
 import ZEN from './zen.min.js';
 import { renderMarkdown } from './markdown.js';
+// The one shared alias+passphrase -> keypair derivation (scobru/fid), pinned to a commit so it can't change under us
+import { deriveMasterPair } from 'https://cdn.jsdelivr.net/gh/scobru/fid@7887fc3468a77943da8ef18a70c3936d1dc45a2a/identity.js';
 
 // Configuration
 const RELAY_URL = 'https://delay.scobrudot.dev/zen';
@@ -150,8 +152,10 @@ function applyTheme(theme, save = false) {
 }
 
 // --- Cryptographic Keypair Derivation ---
+// The identity in use is the FID derivation (deriveMasterPair). This PBKDF2 scheme is what smollog used
+// before; it is kept only so migratePosts() can find posts published under it.
 
-async function derivePair(username, password) {
+async function legacyPairFor(username, password) {
   const cleanUser = username.trim().toLowerCase();
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
@@ -851,6 +855,33 @@ function updateAuthUI() {
   }
 }
 
+// Copy posts published under the previous identity to the current one, re-signed with the current key.
+// Idempotent (ids already present are skipped); the old posts are left where they are.
+async function migratePosts(legacy, pair) {
+  const readPosts = (pub) => new Promise((resolve) => {
+    const posts = new Map();
+    setTimeout(() => resolve(posts), 4000);
+    const root = zen.get('~' + pub).get('posts');
+    root.map().once((post, id) => {
+      if (post && typeof post === 'object') posts.set(id, post);
+      else if (id) root.get(id).once((full) => full && posts.set(id, full));
+    });
+  });
+  try {
+    const [old, cur] = await Promise.all([readPosts(legacy.pub), readPosts(pair.pub)]);
+    const todo = [...old].filter(([id, post]) => post.title && post.deleted !== true && !cur.has(id));
+    // puts resolve on ack or after 8s, so an unreachable relay can't hang the login
+    await Promise.all(todo.map(([id, post]) => new Promise((resolve) => {
+      const t = setTimeout(resolve, 8000);
+      const { _, ...fields } = post;
+      zen.get('~' + pair.pub).get('posts').get(id).put({ ...fields, authorPub: pair.pub }, () => { clearTimeout(t); resolve(); }, { authenticator: pair });
+    })));
+    if (todo.length) showToast(`${todo.length} post migrati alla nuova identità`, 4000);
+  } catch (err) {
+    console.warn('Post migration failed:', err);
+  }
+}
+
 async function handleLogin(username, password) {
   authAlert.style.display = 'none';
   authSubmitBtn.textContent = 'Accesso in corso...';
@@ -858,7 +889,7 @@ async function handleLogin(username, password) {
 
   try {
     const cleanUser = username.trim().toLowerCase();
-    const pair = await derivePair(username, password);
+    const pair = await deriveMasterPair(ZEN, username, password);
     currentPair = pair;
     currentUsername = username;
 
@@ -879,6 +910,9 @@ async function handleLogin(username, password) {
 
     // Subscribe to own userspace
     subscribeToAuthor(pair.pub);
+
+    // Bring over posts published under the previous (PBKDF2) identity
+    migratePosts(await legacyPairFor(username, password), pair);
 
     // Update route to /<pub>
     const postId = getPostIdFromLocation();
